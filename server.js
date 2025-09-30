@@ -1,8 +1,7 @@
 // server.js
-
-const express = require('express');
-const cors = require('cors');
-const productRoutes = require('./routes/productRoutes'); // Importa o roteador
+import express from 'express';
+import cors from 'cors';
+import productRoutes from './routes/productRoutes.js'; // Importa o roteador
 
 const app = express();
 const PORT = 3001;

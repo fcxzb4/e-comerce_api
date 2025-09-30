@@ -1,7 +1,7 @@
 // data/products.js
 
 // Usamos 'let' para que a lista possa ser modificada (adicionar novos produtos via POST)
-export let PRODUCTS = [
+const PRODUCTS = [
     {
         id: 1,
         title: "braia de tarbalho",
@@ -19,5 +19,4 @@ export let PRODUCTS = [
     // ... adicione mais produtos se quiser
 ];
 
-// Variável para simular o carrinho de compras
-export let CART = [];
+export default PRODUCTS;
