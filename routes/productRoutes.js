@@ -5,71 +5,52 @@ const router = express.Router();
 // Importa os dados (o "banco de dados" e o carrinho)
 import PRODUCTS from './../module/data/products.js';
 
-// ----------------------
-// Rota GET: Obter todos os cartões/produtos
-// URL: /api/products
-// ----------------------
-router.get("/", (req, res) => {
-  console.log(PRODUCTS);
-  return res.status(200).json(PRODUCTS);
+router.put('/:id', (req, res) => {
+    // Pega o ID do produto da URL (parâmetro de rota)
+    const productId = parseInt(req.params.id); 
+    const updatedData = req.body;
+    
+    // 1. Encontra o índice do produto no array
+    const productIndex = PRODUCTS.findIndex(p => p.id === productId);
+
+    if (productIndex === -1) {
+        // Se o produto não for encontrado, retorna 404
+        return res.status(404).json({ message: 'Produto não encontrado para atualização.' });
+    }
+
+    // 2. Cria o objeto atualizado (mantém o ID e substitui os outros campos)
+    const updatedProduct = {
+        ...PRODUCTS[productIndex], // Mantém dados antigos
+        ...updatedData,             // Sobrescreve com dados novos
+        id: productId               // Garante que o ID não mude
+    };
+
+    // 3. Atualiza o array no índice encontrado
+    PRODUCTS[productIndex] = updatedProduct;
+    
+    console.log(`Produto ID ${productId} atualizado.`);
+    return res.status(200).json(updatedProduct); // Retorna o produto atualizado
 });
 
-// ----------------------
-// Rota POST: Criar um novo produto (novo cartão)
-// URL: /api/products
-// Body: { title, description, price, image }
-// ----------------------
-router.post("/", (req, res) => {
-  const newProduct = req.body;
+router.delete('/:id', (req, res) => {
+    // Pega o ID do produto da URL (parâmetro de rota)
+    const productId = parseInt(req.params.id); 
+    
+    // 1. Encontra o índice do produto
+    const productIndex = PRODUCTS.findIndex(p => p.id === productId);
 
-  // Simula a geração de um novo ID
-  const newId = PRODUCTS.length > 0 ? PRODUCTS[PRODUCTS.length - 1].id + 1 : 1;
+    if (productIndex === -1) {
+        // Se o produto não for encontrado, retorna 404
+        return res.status(404).json({ message: `Produto ID ${productId} não encontrado para exclusão.` });
+    }
 
-  const productWithId = {
-    id: newId,
-    ...newProduct,
-    // Garantindo que a imagem não seja nula
-    image:
-      newProduct.image ||
-      "https://via.placeholder.com/300x200?text=Novo+Produto",
-  };
-
-  PRODUCTS.push(productWithId);
-
-  console.log(`Novo produto criado: ${productWithId.title}`);
-  return res.status(201).json(productWithId); // Retorna o produto criado com status 201 (Created)
+    // 2. Remove o produto do array usando splice()
+    PRODUCTS.splice(productIndex, 1);
+    
+    console.log(`Produto ID ${productId} excluído com sucesso.`);
+    // Retorna 204 (No Content) para indicar sucesso na exclusão, mas sem corpo de resposta
+    return res.status(204).send(); 
 });
 
-// ----------------------
-// Rota POST: Simular a adição de um produto ao carrinho
-// URL: /api/products/add-to-cart
-// Body: { productId, quantity }
-// ----------------------
-router.post("/add-to-cart", (req, res) => {
-  const { productId, quantity = 1 } = req.body;
-  const product = PRODUCTS.find((p) => p.id === productId);
-
-  if (!product) {
-    return res.status(404).json({ message: "Produto não encontrado." });
-  }
-
-  // Simula a lógica de adicionar/atualizar no carrinho
-  const existingItem = CART.find((item) => item.id === productId);
-
-  if (existingItem) {
-    existingItem.quantity += quantity;
-  } else {
-    CART.push({ id: productId, title: product.title, quantity });
-  }
-
-  console.log(`Produto ${product.title} adicionado ao carrinho.`);
-  // O ideal seria retornar o carrinho, mas aqui só retornamos sucesso.
-  return res
-    .status(200)
-    .json({
-      message: "Produto adicionado ao carrinho com sucesso!",
-      cart: CART,
-    });
-});
 
 export default router;
