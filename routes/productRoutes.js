@@ -3,52 +3,73 @@
 import express from 'express';
 const router = express.Router();
 // Importa os dados (o "banco de dados" e o carrinho)
-import PRODUCTS from './../module/data/products.js';
+import PRODUCTS  from './../module/data/products.js';
 
+router.get('/', (req, res) => {
+    console.log('GET /api/products solicitado.');
+    // 🚨 CORREÇÃO MAIS IMPORTANTE: Retornar o ARRAY de produtos DIRETAMENTE
+    return res.status(200).json(PRODUCTS);
+});
+
+// ----------------------
+// Rota POST: Criar um novo cartão
+// URL: /api/products
+// ----------------------
+router.post('/', (req, res) => {
+    const newProduct = req.body;
+    const newId = PRODUCTS.length > 0 ? PRODUCTS[PRODUCTS.length - 1].id + 1 : 1;
+    
+    const productWithId = { 
+        id: newId, 
+        ...newProduct, 
+        image: newProduct.image || "https://via.placeholder.com/300x200?text=Novo+Produto"
+    };
+
+    PRODUCTS.push(productWithId);
+    console.log(`POST: Novo produto criado: ${productWithId.title}`);
+    return res.status(201).json(productWithId);
+});
+
+// ----------------------
+// Rota PUT: Editar um cartão
+// URL: /api/products/:id
+// ----------------------
 router.put('/:id', (req, res) => {
-    // Pega o ID do produto da URL (parâmetro de rota)
     const productId = parseInt(req.params.id); 
     const updatedData = req.body;
     
-    // 1. Encontra o índice do produto no array
     const productIndex = PRODUCTS.findIndex(p => p.id === productId);
 
     if (productIndex === -1) {
-        // Se o produto não for encontrado, retorna 404
         return res.status(404).json({ message: 'Produto não encontrado para atualização.' });
     }
 
-    // 2. Cria o objeto atualizado (mantém o ID e substitui os outros campos)
     const updatedProduct = {
-        ...PRODUCTS[productIndex], // Mantém dados antigos
-        ...updatedData,             // Sobrescreve com dados novos
-        id: productId               // Garante que o ID não mude
+        ...PRODUCTS[productIndex],
+        ...updatedData, 
+        id: productId
     };
 
-    // 3. Atualiza o array no índice encontrado
     PRODUCTS[productIndex] = updatedProduct;
-    
-    console.log(`Produto ID ${productId} atualizado.`);
-    return res.status(200).json(updatedProduct); // Retorna o produto atualizado
+    console.log(`PUT: Produto ID ${productId} atualizado.`);
+    return res.status(200).json(updatedProduct);
 });
 
+// ----------------------
+// Rota DELETE: Excluir um cartão
+// URL: /api/products/:id
+// ----------------------
 router.delete('/:id', (req, res) => {
-    // Pega o ID do produto da URL (parâmetro de rota)
     const productId = parseInt(req.params.id); 
-    
-    // 1. Encontra o índice do produto
     const productIndex = PRODUCTS.findIndex(p => p.id === productId);
 
     if (productIndex === -1) {
-        // Se o produto não for encontrado, retorna 404
         return res.status(404).json({ message: `Produto ID ${productId} não encontrado para exclusão.` });
     }
 
-    // 2. Remove o produto do array usando splice()
     PRODUCTS.splice(productIndex, 1);
-    
-    console.log(`Produto ID ${productId} excluído com sucesso.`);
-    // Retorna 204 (No Content) para indicar sucesso na exclusão, mas sem corpo de resposta
+    console.log(`DELETE: Produto ID ${productId} excluído.`);
+    // 204 No Content indica exclusão bem sucedida
     return res.status(204).send(); 
 });
 
